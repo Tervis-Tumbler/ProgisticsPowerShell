@@ -27,6 +27,7 @@ function Invoke-ProgisticsAPI {
 }
 
 function Get-ProgisticsCarriers {
+    #https://connectship.com/docs/SDK/Technical_Reference/AMP_Reference/Core_Messages/Message_Elements/listCarriersRequest.htm
     Invoke-ProgisticsAPI -MethodName ListCarriers -Parameter (New-Object Progistics.ListCarriersRequest)
 }
 
@@ -43,6 +44,8 @@ function Find-ProgisticsPackage {
         $PSBoundParameters.Remove("carrier") | Out-Null
     }
     process {
+        #https://connectship.com/docs/SDK/Technical_Reference/AMP_Reference/Core_Messages/Message_Elements/searchRequest.htm
+        #https://connectship.com/docs/SDK/Technical_Reference/AMP_Reference/Core_Messages/Complex_Types/DataDictionary.htm
         $Request = New-Object Progistics.SearchRequest -Property @{
             carrier = $carrier
             filters = New-Object Progistics.DataDictionary -Property @{
@@ -55,6 +58,6 @@ function Find-ProgisticsPackage {
         }
 
         $Result = Invoke-ProgisticsAPI -MethodName Search -Parameter $Request
-        $Result.resultdata.consignee    
+        $Result.resultdata   
     }
 }
