@@ -8,17 +8,12 @@ function Set-ProgisticsComputerName {
     )
     process {
         $Script:ProgisticsComputerName = $ComputerName
+        $Script:Proxy = New-WebServiceProxy -Uri "http://$ComputerName/amp/wsdl" -Class Progistics -Namespace Progistics
     }    
 }
 
 function Get-ProgisticsWebServiceProxy {
-    if ($Script:Proxy) {
-        $Script:Proxy
-    } else {
-        $ProgisticsComputerName = Get-ProgisticsComputerName
-        $Script:Proxy = New-WebServiceProxy -Uri "http://$ProgisticsComputerName/amp/wsdl" -Class Progistics -Namespace Progistics
-        $Script:Proxy
-    }
+    $Script:Proxy
 }
 
 function Invoke-ProgisticsAPI {
@@ -44,6 +39,9 @@ function Find-ProgisticsPackage {
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$postalCode,
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$phone
     )
+    begin {
+        $PSBoundParameters.Remove("carrier") | Out-Null
+    }
     process {
         $Request = New-Object Progistics.SearchRequest -Property @{
             carrier = $carrier
