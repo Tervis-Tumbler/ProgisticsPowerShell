@@ -1,27 +1,34 @@
-function Test-ProgisticsAPI {
-    #https://connectship.com/docs/SDK/?topic=Using_AMP/Using_AMP.htm
-    $Proxy = New-WebServiceProxy -Uri http://dlt-progis01/amp/wsdl -Class Progistics -Namespace Progistics
-    $Proxy | gm | where name -eq ListCountries | fL
-    $Proxy.ListCountries()
-    $proxy.BeginListCountries()
-    $Request = New-Object Progistics.ListCountriesRequest
-    $Request.preProcess = "core"
-    $Request.postProcess = "core"
+function Get-ProgisticsComputerName {
+    $Script:ProgisticsComputerName
+}
 
-    $Proxy.ListCountries($Request)
+function Set-ProgisticsComputerName {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    process {
+        $Script:ProgisticsComputerName = $ComputerName
+    }    
+}
 
-    $Proxy | gm | where name -eq ListUnits | fL
-    #https://connectship.com/docs/SDK/Technical_Reference/AMP_Reference/Core_Messages/Message_Elements/listUnitsRequest.htm
-    $Request = New-Object Progistics.ListUnitsRequest
-    $Request.preProcess = "core"
-    $Request.postProcess = "core"
-    $Proxy.ListUnits($Request)
+function Get-ProgisticsWebServiceProxy {
+    if ($Script:Proxy) {
+        $Script:Proxy
+    } else {
+        $ProgisticsComputerName = Get-ProgisticsComputerName
+        $Proxy = New-WebServiceProxy -Uri "http://$ProgisticsComputerName/amp/wsdl" -Class Progistics -Namespace Progistics
+    }
+}
 
-    get-service -ComputerName dlt-progis01 | where displayname -Match progis
-    get-service -ComputerName dlt-progis01 -Name AMPService | Restart-Service
-    
-    $Request = New-Object Progistics.ListDocumentsRequest
-    $Request.carrier = 'CONNECTSHIP_UPS.UPS'
-    $Result = $Proxy.ListDocuments($Request)
+function Invoke-ProgisticsAPI {
+    param (
+        $MethodName,
+        $Parameter
+    )
+    $Result = $Proxy.$MethodName($Parameter)
     $Result.result.resultData
+}
+
+function Get-ProgisticsCarriers {
+    Invoke-ProgisticsAPI -MethodName ListCarriers -Parameter (New-Object Progistics.ListCarriersRequest)
 }
