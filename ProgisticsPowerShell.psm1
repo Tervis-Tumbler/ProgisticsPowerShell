@@ -19,45 +19,83 @@ function Get-ProgisticsWebServiceProxy {
 function Invoke-ProgisticsAPI {
     param (
         $MethodName,
-        $Parameter
+        $Parameter,
+        $Property
     )
     $Proxy = Get-ProgisticsWebServiceProxy
+    if (-not $Parameter) {
+        if ($Property) {
+            $Parameter = New-Object -TypeName Progistics."$($MethodName)Request" -Property $Property
+        } else {
+            $Parameter = New-Object -TypeName Progistics."$($MethodName)Request"
+        }
+    }
     $Result = $Proxy.$MethodName($Parameter)
     $Result.result.resultData
 }
 
-function Get-ProgisticsCarriers {
-    #https://connectship.com/docs/SDK/Technical_Reference/AMP_Reference/Core_Messages/Message_Elements/listCarriersRequest.htm
-    Invoke-ProgisticsAPI -MethodName ListCarriers -Parameter (New-Object Progistics.ListCarriersRequest)
+function Get-ProgisticsCarrier {
+    if (-not $Script:ProgisticsCarrier) {
+        #https://connectship.com/docs/SDK/Technical_Reference/AMP_Reference/Core_Messages/Message_Elements/listCarriersRequest.htm
+        $Script:ProgisticsCarrier = Invoke-ProgisticsAPI -MethodName ListCarriers
+    }
+    $Script:ProgisticsCarrier
 }
 
 function Find-ProgisticsPackage {
     param (
         [Parameter(Mandatory)]$carrier,
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$company,
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$address1,
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$city,
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$postalCode,
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$phone
+        [Parameter(Mandatory,ParameterSetName = "TrackingNumber")]$TrackingNumber,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName,ParameterSetName = "Consignee")]$company,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName,ParameterSetName = "Consignee")]$address1,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName,ParameterSetName = "Consignee")]$city,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName,ParameterSetName = "Consignee")]$postalCode,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName,ParameterSetName = "Consignee")]$phone,
+        [Switch]$globalSearch
     )
     begin {
         $PSBoundParameters.Remove("carrier") | Out-Null
+        $PSBoundParameters.Remove("globalSearch") | Out-Null
     }
     process {
         #https://connectship.com/docs/SDK/Technical_Reference/AMP_Reference/Core_Messages/Message_Elements/searchRequest.htm
         #https://connectship.com/docs/SDK/Technical_Reference/AMP_Reference/Core_Messages/Complex_Types/DataDictionary.htm
-        $Request = New-Object Progistics.SearchRequest -Property @{
+        $Property = @{
             carrier = $carrier
-            filters = New-Object Progistics.DataDictionary -Property @{
-                consignee = New-Object Progistics.NameAddress -Property (
-                    $PSBoundParameters + @{
-                        countryCode = "US"
+            filters = New-Object Progistics.DataDictionary -Property $(
+                if ($TrackingNumber) {
+                    @{ 
+                        trackingNumber = $TrackingNumber
                     }
-                )
-            }
+                } else {
+                    @{
+                        consignee = New-Object Progistics.NameAddress -Property (
+                            $PSBoundParameters + @{
+                                countryCode = "US"
+                            }
+                        )
+                    }
+                }
+            )
+            globalSearch = $globalSearch
         }
 
-        $Result = Invoke-ProgisticsAPI -MethodName Search -Parameter $Request
-        $Result.resultdata   
+        $Result = Invoke-ProgisticsAPI -MethodName Search -Property $Property
+        $Result
     }
+}
+
+function Get-ProgisticsShipper {
+    param (
+        $carrier
+    )
+    Invoke-ProgisticsAPI -MethodName ListShippers -Property $PSBoundParameters
+}
+
+function Get-ProgisticsShipFile {
+    param (
+        $carrier,
+        $shipper
+    )
+    Invoke-ProgisticsAPI -MethodName listShipFiles -Property $PSBoundParameters
 }
