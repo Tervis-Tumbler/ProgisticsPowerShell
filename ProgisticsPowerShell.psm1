@@ -9,7 +9,7 @@ function Set-ProgisticsComputerName {
     process {
         $Script:ProgisticsComputerName = $ComputerName
         $Script:Proxy = New-WebServiceProxy -Uri "http://$ComputerName/amp/wsdl" -Class Progistics -Namespace Progistics
-    }    
+    }
 }
 
 function Get-ProgisticsWebServiceProxy {
@@ -64,7 +64,7 @@ function Find-ProgisticsPackage {
             carrier = $carrier
             filters = New-Object Progistics.DataDictionary -Property $(
                 if ($TrackingNumber) {
-                    @{ 
+                    @{
                         trackingNumber = $TrackingNumber
                     }
                 } else {
