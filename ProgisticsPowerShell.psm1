@@ -103,3 +103,11 @@ function Get-ProgisticsShipFile {
     )
     Invoke-ProgisticsAPI -MethodName listShipFiles -Property $PSBoundParameters
 }
+
+function Get-ProgisticsService {
+    param (
+        $carrier,
+        $shipper
+    )
+    Invoke-ProgisticsAPI -MethodName listServices -Property $PSBoundParameters
+}
