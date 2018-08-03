@@ -30,8 +30,12 @@ function Invoke-ProgisticsAPI {
             $Parameter = New-Object -TypeName Progistics."$($MethodName)Request"
         }
     }
-    $Result = $Proxy.$MethodName($Parameter)
-    $Result.result.resultData
+    $Response = $Proxy.$MethodName($Parameter)
+    if ($Response.result.code -eq 0) {
+        $Response.result.resultData
+    } else {
+        $Response.result
+    }
 }
 
 function Get-ProgisticsCarrier {
