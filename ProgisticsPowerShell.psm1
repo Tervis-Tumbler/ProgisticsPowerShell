@@ -111,3 +111,14 @@ function Get-ProgisticsService {
     )
     Invoke-ProgisticsAPI -MethodName listServices -Property $PSBoundParameters
 }
+
+function Get-ProgisticsStock {
+    Invoke-ProgisticsAPI -MethodName listStocks
+}
+
+function Get-ProgisticsDocumentFormat {
+    param (
+        $carrier
+    )
+    Invoke-ProgisticsAPI -MethodName listDocumentFormats -Property $PSBoundParameters
+}
