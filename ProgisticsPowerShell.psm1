@@ -31,11 +31,7 @@ function Invoke-ProgisticsAPI {
         }
     }
     $Response = $Proxy.$MethodName($Parameter)
-    if ($Response.result.code -eq 0) {
-        $Response.result.resultData
-    } else {
-        $Response.result
-    }
+    $Response.result
 }
 
 function Get-ProgisticsCarrier {
@@ -121,4 +117,16 @@ function Get-ProgisticsDocumentFormat {
         $carrier
     )
     Invoke-ProgisticsAPI -MethodName listDocumentFormats -Property $PSBoundParameters
+}
+
+function Get-ProgisticsPrinterDevice {
+    Invoke-ProgisticsAPI -MethodName listPrinterDevices
+}
+
+function Get-ProgisticsWindowsPrinter {
+    Invoke-ProgisticsAPI -MethodName listWindowsPrinters
+}
+
+function Get-ProgisticsLocalPort {
+    Invoke-ProgisticsAPI -MethodName listLocalPorts
 }
