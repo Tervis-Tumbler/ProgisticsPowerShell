@@ -146,13 +146,13 @@ function Remove-ProgisticsPackage {
 function Invoke-ProgisticsPackagePrint {
     param (
         $Carrier,
-        $Shiper,
+        $Shipper,
         $Document,
         [int]$MSN,
         $Output,
         $StockSymbol
     )
-    "MSN" | 
+    "MSN","StockSymbol" | 
     ForEach-Object {
         $PSBoundParameters.Remove($_) | Out-Null
     }
@@ -172,7 +172,7 @@ function Invoke-ProgisticsPackagePrint {
     Invoke-ProgisticsAPI -MethodName Print -Parameter $PrintRequest
 }
 
-function New-ProgisticsPackage {
+function New-ProgisticsPackageShipment {
     param (
         [Parameter(ValueFromPipelineByPropertyName)]$Company,
         [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$Address1,
@@ -192,7 +192,7 @@ function New-ProgisticsPackage {
         $ShipDate
     )
     $ConsigneeParameters = $PSBoundParameters | 
-    ConvertFrom-PSBoundParameters -ExcludeProperty WeightUnit,Weight,consigneeReference,service,Shipper,Terms -AsHashTable
+    ConvertFrom-PSBoundParameters -ExcludeProperty WeightUnit,Weight,consigneeReference,service,Shipper,Terms,ShipDate -AsHashTable
 
     $ShipRequest = New-Object Progistics.ShipRequest -Property @{
         service = $service
