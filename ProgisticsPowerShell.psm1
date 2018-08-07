@@ -131,7 +131,7 @@ function Get-ProgisticsLocalPort {
     Invoke-ProgisticsAPI -MethodName listLocalPorts
 }
 
-function Remove-ProgisticsShip {
+function Remove-ProgisticsPackage {
     param (
         $Carrier,
         $MSN
@@ -141,4 +141,78 @@ function Remove-ProgisticsShip {
         packages = [int[]]@($MSN)
     }
     Invoke-ProgisticsAPI -MethodName voidPackages -Parameter $VoidPackagesRequest
+}
+
+function Invoke-ProgisticsPackagePrint {
+    param (
+        $Carrier,
+        $Shiper,
+        $Document,
+        [int]$MSN,
+        $Output,
+        $StockSymbol
+    )
+    "MSN" | 
+    ForEach-Object {
+        $PSBoundParameters.Remove($_) | Out-Null
+    }
+
+    $PrintRequest = New-Object Progistics.PrintRequest -Property (
+        $PSBoundParameters + @{
+            itemList = New-Object Progistics.PrintItemList -Property @{
+                items = [System.Object[]]@($MSN)
+                ItemsElementName = [Progistics.ItemsChoiceType[]]@([Progistics.ItemsChoiceType]::msn)
+            }
+            stock = New-Object Progistics.StockDescriptor -Property @{
+                symbol = $StockSymbol
+            }
+        }
+    )
+
+    Invoke-ProgisticsAPI -MethodName Print -Parameter $PrintRequest
+}
+
+function New-ProgisticsPackage {
+    param (
+        [Parameter(ValueFromPipelineByPropertyName)]$Company,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$Address1,
+        [Parameter(ValueFromPipelineByPropertyName)]$Address2,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$City,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$StateProvince,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$PostalCode,
+        [Parameter(ValueFromPipelineByPropertyName)]$Residential,
+        [Parameter(ValueFromPipelineByPropertyName)]$Phone,
+        [Parameter(ValueFromPipelineByPropertyName)]$CountryCode,
+        [Parameter(Mandatory)]$service,
+        $Shipper,
+        $Terms,
+        $consigneeReference,
+        [Parameter(Mandatory)]$WeightUnit,
+        [Parameter(Mandatory)]$Weight,
+        $ShipDate
+    )
+    $ConsigneeParameters = $PSBoundParameters | 
+    ConvertFrom-PSBoundParameters -ExcludeProperty WeightUnit,Weight,consigneeReference,service,Shipper,Terms -AsHashTable
+
+    $ShipRequest = New-Object Progistics.ShipRequest -Property @{
+        service = $service
+        defaults = New-Object Progistics.DataDictionary
+        packages = [Progistics.DataDictionary[]]@(
+            New-Object Progistics.DataDictionary -Property @{
+                consignee = New-Object Progistics.NameAddress -Property (
+                    $ConsigneeParameters
+                )
+                consigneeReference = $consigneeReference
+                shipper = $Shipper
+                terms = $Terms
+                weight = New-Object Progistics.weight -Property @{
+                    unit = $WeightUnit
+                    amount = $Weight
+                }
+                shipdate = $ShipDate
+            }
+        )
+    }
+    
+    Invoke-ProgisticsAPI -MethodName Ship -Parameter $ShipRequest
 }
