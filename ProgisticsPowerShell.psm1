@@ -130,3 +130,15 @@ function Get-ProgisticsWindowsPrinter {
 function Get-ProgisticsLocalPort {
     Invoke-ProgisticsAPI -MethodName listLocalPorts
 }
+
+function Remove-ProgisticsShip {
+    param (
+        $Carrier,
+        $MSN
+    )
+    $VoidPackagesRequest = New-Object Progistics.VoidPackagesRequest -Property @{
+        carrier = $Carrier
+        packages = [int[]]@($MSN)
+    }
+    Invoke-ProgisticsAPI -MethodName voidPackages -Parameter $VoidPackagesRequest
+}
