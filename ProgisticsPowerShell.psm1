@@ -46,6 +46,7 @@ function Find-ProgisticsPackage {
     param (
         [Parameter(Mandatory)]$carrier,
         [Parameter(Mandatory,ParameterSetName = "TrackingNumber")]$TrackingNumber,
+        [Parameter(Mandatory,ParameterSetName = "MSN")][int]$MSN,
         [Parameter(Mandatory,ValueFromPipelineByPropertyName,ParameterSetName = "Consignee")]$company,
         [Parameter(Mandatory,ValueFromPipelineByPropertyName,ParameterSetName = "Consignee")]$address1,
         [Parameter(Mandatory,ValueFromPipelineByPropertyName,ParameterSetName = "Consignee")]$city,
@@ -63,11 +64,7 @@ function Find-ProgisticsPackage {
         $Property = @{
             carrier = $carrier
             filters = New-Object Progistics.DataDictionary -Property $(
-                if ($TrackingNumber) {
-                    @{
-                        trackingNumber = $TrackingNumber
-                    }
-                } else {
+                if ($address1) {
                     @{
                         consignee = New-Object Progistics.NameAddress -Property (
                             $PSBoundParameters + @{
@@ -75,6 +72,8 @@ function Find-ProgisticsPackage {
                             }
                         )
                     }
+                } else {
+                    $PSBoundParameters
                 }
             )
             globalSearch = $globalSearch
