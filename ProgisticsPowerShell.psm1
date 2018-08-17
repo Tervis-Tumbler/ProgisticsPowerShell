@@ -174,6 +174,7 @@ function Invoke-ProgisticsPackagePrint {
 function New-ProgisticsPackageShipment {
     param (
         [Parameter(ValueFromPipelineByPropertyName)]$Company,
+        [Parameter(ValueFromPipelineByPropertyName)]$Contact,
         [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$Address1,
         [Parameter(ValueFromPipelineByPropertyName)]$Address2,
         [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$City,
